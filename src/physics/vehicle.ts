@@ -53,7 +53,7 @@ const SUBSTEPS = 4;
 const SPRING = 40;
 const DAMPER = 4;
 const BUMP_START = 0.32;
-const BUMP_SPRING = 450;
+const BUMP_SPRING = 1500;
 const DOWNFORCE = 0.22;
 const INERTIA = new Vec3(1.6, 1.8, 0.9); // capcineig (X), guinyada (Y), balanceig (Z)
 
@@ -84,6 +84,9 @@ const DRIFT_CHARGE_RATE = 0.3;
 const TURBO_DRAIN_RATE = 0.45;
 const TURBO_ACCEL = 20;
 const TURBO_SPEED_MULT = 1.3;
+/** Durada i empenta inicial dels pads de turbo del circuit. */
+const PAD_BOOST_TIME = 1;
+const PAD_BOOST_KICK = 5;
 
 const ALIGN_STIFFNESS = 30;
 const ALIGN_DAMPING = 6;
@@ -98,6 +101,14 @@ const MAX_ANGULAR_SPEED = 9;
 const WALL_RESTITUTION = 0.15;
 const WALL_FRICTION = 0.15;
 const ANGULAR_IMPULSE_SCALE = 0.5;
+
+/** Estat mínim per restaurar el cotxe (p. ex. en reaparèixer a un checkpoint). */
+export interface VehicleSnapshot {
+  pos: Vec3;
+  rot: Quat;
+  vel: Vec3;
+  turbo: number;
+}
 
 export interface WheelState {
   grounded: boolean;
@@ -141,8 +152,10 @@ export class Vehicle {
   slipAngle = 0;
   /** Càrrega del turbo (0..1). */
   turbo = 0;
-  /** Cert si aquest tick s'ha fet servir el turbo. */
+  /** Cert si aquest tick s'ha fet servir el turbo (de la barra o d'un pad). */
   turboActive = false;
+  /** Temps restant de turbo d'un pad del circuit (s). */
+  padBoost = 0;
   /** Impuls de l'impacte més fort d'aquest tick (per a efectes i so). */
   impact = 0;
   /** Cert si la carrosseria frega una paret aquest tick. */
@@ -183,6 +196,7 @@ export class Vehicle {
     this.slipAngle = 0;
     this.turbo = 0;
     this.turboActive = false;
+    this.padBoost = 0;
     this.gripBlend = 1;
     this.airTime = 0;
     this.impact = 0;
@@ -197,6 +211,33 @@ export class Vehicle {
     }
     this.prevPos.copy(this.pos);
     this.prevRot.copy(this.rot);
+  }
+
+  snapshot(): VehicleSnapshot {
+    return {
+      pos: this.pos.clone(),
+      rot: this.rot.clone(),
+      vel: this.vel.clone(),
+      turbo: this.turbo,
+    };
+  }
+
+  /** Restaura una instantània: conserva la velocitat però no la rotació. */
+  restore(s: VehicleSnapshot): void {
+    const turbo = s.turbo;
+    this.reset(s.pos, 0);
+    this.rot.copy(s.rot);
+    this.prevRot.copy(s.rot);
+    this.vel.copy(s.vel);
+    this.turbo = turbo;
+  }
+
+  /** Activa un pad de turbo del circuit. */
+  triggerPadBoost(): void {
+    if (this.padBoost <= 0 && this.grounded) {
+      this.vel.addScaled(this.forward(this.tmp), PAD_BOOST_KICK);
+    }
+    this.padBoost = PAD_BOOST_TIME;
   }
 
   forward(out: Vec3): Vec3 {
@@ -268,9 +309,15 @@ export class Vehicle {
     }
 
     // --- Turbo ---
-    const boosting = input.boost && this.turbo > 0;
-    if (boosting) {
+    let boosting = false;
+    if (this.padBoost > 0) {
+      boosting = true;
+      this.padBoost = Math.max(0, this.padBoost - h);
+    } else if (input.boost && this.turbo > 0) {
+      boosting = true;
       this.turbo = Math.max(0, this.turbo - TURBO_DRAIN_RATE * h);
+    }
+    if (boosting) {
       this.turboActive = true;
       maxSpeed *= TURBO_SPEED_MULT;
     }

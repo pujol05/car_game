@@ -1,6 +1,7 @@
 // Escena de three.js: renderer, llums i terra.
 
 import * as THREE from 'three';
+import { GROUND_Y } from '../track/grid';
 
 export class SceneRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -66,18 +67,12 @@ export class SceneRenderer {
 }
 
 function createGround(): THREE.Object3D {
-  const group = new THREE.Group();
   const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(4000, 4000),
+    new THREE.PlaneGeometry(6000, 6000),
     new THREE.MeshStandardMaterial({ color: 0x6cc24a, roughness: 1 }),
   );
   plane.rotation.x = -Math.PI / 2;
+  plane.position.y = GROUND_Y;
   plane.receiveShadow = true;
-  group.add(plane);
-
-  // Graella per percebre el moviment.
-  const grid = new THREE.GridHelper(4000, 400, 0x4f9a35, 0x5aae3d);
-  grid.position.y = 0.01;
-  group.add(grid);
-  return group;
+  return plane;
 }

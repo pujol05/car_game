@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { DT } from '../src/core/loop';
 import { Vec3 } from '../src/core/math';
 import { DEFAULT_CAR } from '../src/data/cars';
-import { buildPlayground } from '../src/data/playground';
 import { CollisionWorld, Surface } from '../src/physics/collision';
 import { RIDE_HEIGHT, Vehicle } from '../src/physics/vehicle';
+import { buildTrack } from '../src/track/builder';
+import { TrackWalker } from '../src/track/walker';
 import { drive } from './helpers';
 
 function flatWorld(): CollisionWorld {
@@ -92,13 +93,9 @@ describe('Vehicle', () => {
   });
 
   it('salta des d una rampa i aterra dret', () => {
-    const world = new CollisionWorld();
-    world.groundY = 0;
-    world.groundMaterial = Surface.Road;
-    buildPlayground(world);
-    world.build();
-    // La rampa petita comença a z = 60 i puja cap a +Z.
-    const v = makeCar(world, 0, new Vec3(0, RIDE_HEIGHT, 0));
+    const w = new TrackWalker(0, 0, 0, 0).straight(4).place('ramp').straight(8);
+    const { world } = buildTrack({ name: 't', author: 't', laps: 1, pieces: w.pieces });
+    const v = makeCar(world, 0, new Vec3(0, RIDE_HEIGHT, -5));
     let maxAir = 0;
     for (let i = 0; i < Math.round(8 / DT); i++) {
       v.step({ throttle: 1, brake: 0, steer: 0, handbrake: false, boost: false }, DT);
@@ -107,19 +104,20 @@ describe('Vehicle', () => {
     expect(maxAir).toBeGreaterThan(0.5);
     expect(v.groundedWheels).toBeGreaterThan(2);
     expect(upDot(v)).toBeGreaterThan(0.97);
-    expect(v.pos.z).toBeGreaterThan(150);
+    expect(v.pos.z).toBeGreaterThan(160);
   });
 
-  it('no travessa les parets', () => {
-    const world = new CollisionWorld();
-    world.groundY = 0;
-    world.groundMaterial = Surface.Road;
-    buildPlayground(world);
-    world.build();
-    // La paret és a x = 25 (gruix 1). Hi anem en diagonal a tota velocitat.
-    const v = makeCar(world, Math.PI / 4, new Vec3(0, RIDE_HEIGHT, 0));
-    drive(v, { throttle: 1, boost: true }, 4);
-    expect(v.pos.x).toBeLessThan(25);
+  it('no travessa les parets i no s hi enfila', () => {
+    const w = new TrackWalker(0, 0, 0, 0).straight(20);
+    const { world } = buildTrack({ name: 't', author: 't', laps: 1, pieces: w.pieces });
+    // Les parets són a |x| = 6. Hi anem en diagonal a tota velocitat.
+    const v = makeCar(world, Math.PI / 5, new Vec3(0, RIDE_HEIGHT, 0));
+    v.turbo = 1;
+    for (let i = 0; i < 240; i++) {
+      v.step({ throttle: 1, brake: 0, steer: 0, handbrake: false, boost: true }, DT);
+      expect(Math.abs(v.pos.x)).toBeLessThan(6);
+      expect(v.pos.y).toBeLessThan(RIDE_HEIGHT + 0.5);
+    }
   });
 
   it('és determinista', () => {

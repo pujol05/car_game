@@ -78,3 +78,111 @@ body {
 .turbo-bar.active > div {
   background: linear-gradient(90deg, #ff7a18, #ffd23f);
 }
+
+.hud {
+  position: absolute;
+  inset: 0;
+}
+
+.hud-top {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hud-time {
+  font-size: 40px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hud-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--ui-bg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-countdown {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  font-size: 120px;
+  font-weight: 900;
+  font-style: italic;
+  color: var(--ui-accent);
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.hud-countdown.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.hud-countdown.go {
+  color: #4dff88;
+}
+
+.hud-message {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: var(--ui-bg);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.hud-message.visible {
+  opacity: 1;
+}
+
+.hud-message.warning {
+  color: #ff6b6b;
+}
+
+.hud-finish {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 24px 40px;
+  border-radius: 16px;
+  background: var(--ui-bg);
+  text-align: center;
+  display: none;
+}
+
+.hud-finish.visible {
+  display: block;
+}
+
+.hud-finish h2 {
+  margin: 0;
+  font-size: 48px;
+  font-style: italic;
+  color: var(--ui-accent);
+}
+
+.hud-finish p {
+  margin: 8px 0;
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
