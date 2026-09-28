@@ -76,3 +76,14 @@ export function cellKey(x: number, y: number, z: number): string {
 export function edgeKey(x: number, y: number, z: number, dir: number): string {
   return `${2 * x + DIR_X[dir]},${y},${2 * z + DIR_Z[dir]}`;
 }
+
+/** Límits de la graella: x i z dins de [-GRID_HALF, GRID_HALF), y dins de [0, MAX_LEVEL]. */
+export const GRID_HALF = 24;
+export const MAX_LEVEL = 10;
+export const MAX_PIECES = 600;
+
+export function inGrid(x: number, y: number, z: number): boolean {
+  return (
+    x >= -GRID_HALF && x < GRID_HALF && z >= -GRID_HALF && z < GRID_HALF && y >= 0 && y <= MAX_LEVEL
+  );
+}

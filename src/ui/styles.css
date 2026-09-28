@@ -205,3 +205,290 @@ body {
 .delta-bad {
   color: #ff5c5c;
 }
+
+/* --- Components comuns --- */
+
+.panel {
+  pointer-events: auto;
+  background: var(--ui-bg);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.btn {
+  position: relative;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ui-fg);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.active {
+  background: #2f7dff;
+  border-color: #6aa4ff;
+}
+
+.btn.primary {
+  background: #1fb36b;
+  border-color: #4be39a;
+  font-weight: 700;
+}
+
+.btn kbd {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* --- Editor --- */
+
+.editor {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.editor h3 {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.ed-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.ed-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ed-group.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ed-name {
+  width: 200px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ui-fg);
+  font: inherit;
+}
+
+.ed-value {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.ed-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ed-left {
+  width: 190px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ed-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ed-palette .btn {
+  text-align: left;
+}
+
+.ed-palette .btn kbd {
+  position: absolute;
+  right: 8px;
+}
+
+.ed-right {
+  width: 260px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.ed-status {
+  font-weight: 700;
+}
+
+.ed-status.ok {
+  color: #4dff88;
+}
+
+.ed-status.bad {
+  color: #ffb03a;
+}
+
+.ed-messages {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.ed-messages li {
+  margin-bottom: 4px;
+}
+
+.ed-messages .error {
+  color: #ff7b7b;
+}
+
+.ed-messages .warning {
+  color: #ffd66b;
+}
+
+.ed-help {
+  align-self: center;
+  max-width: 900px;
+  padding: 8px 14px;
+  font-size: 12px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.ed-toast {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #1c2a44;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ed-toast.visible {
+  opacity: 1;
+}
+
+.ed-toast.error {
+  background: #5a1f2a;
+}
+
+/* --- Diàlegs --- */
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+}
+
+.modal-backdrop.visible {
+  display: flex;
+}
+
+.modal {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100% - 64px);
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal h2 {
+  margin: 0 0 4px;
+}
+
+.modal .code {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--ui-fg);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+.modal textarea.code {
+  min-height: 90px;
+  resize: vertical;
+  word-break: break-all;
+}
+
+.modal .error {
+  min-height: 1em;
+  margin: 0;
+  color: #ff7b7b;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.load-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.load-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.load-list small {
+  display: block;
+  opacity: 0.7;
+}

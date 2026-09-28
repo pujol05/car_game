@@ -30,8 +30,8 @@ export class Hud {
   private readonly finish: HTMLDivElement;
   private messageTimer = 0;
 
-  constructor(parent: HTMLElement) {
-    this.root = el('div', 'hud', parent);
+  constructor(backHint?: string) {
+    this.root = el('div', 'hud');
     const top = el('div', 'hud-top', this.root);
     this.lap = el('div', 'hud-chip', top);
     this.time = el('div', 'hud-time', top);
@@ -45,7 +45,8 @@ export class Hud {
     this.finish = el('div', 'hud-finish', this.root);
     const hint = el('div', 'hint', this.root);
     hint.textContent =
-      'WASD/fletxes: conduir · Espai: derrapar · Shift: turbo · R: reaparèixer · Enter: reiniciar';
+      'WASD/fletxes: conduir · Espai: derrapar · Shift: turbo · R: reaparèixer · Enter: reiniciar' +
+      (backHint ? ` · ${backHint}` : '');
   }
 
   /** Mostra un missatge temporal. `html` només conté text generat pel joc. */

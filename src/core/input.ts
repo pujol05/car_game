@@ -30,6 +30,17 @@ const PAD_RB = 5;
 const PAD_LT = 6;
 const PAD_RT = 7;
 
+/** Cert si l'esdeveniment ve d'un camp de text (no s'ha de tractar com a control). */
+export function isTextField(target: EventTarget | null): boolean {
+  if (typeof HTMLElement === 'undefined' || !(target instanceof HTMLElement)) return false;
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  );
+}
+
 function applyDeadzone(v: number): number {
   const a = Math.abs(v);
   if (a < STICK_DEADZONE) return 0;
@@ -44,6 +55,7 @@ export class InputManager {
 
   constructor(target: Window = window) {
     target.addEventListener('keydown', (e) => {
+      if (isTextField(e.target)) return;
       if (PREVENT_DEFAULT.has(e.code)) e.preventDefault();
       if (!e.repeat) this.pressed.add(e.code);
       this.keys.add(e.code);
@@ -57,6 +69,11 @@ export class InputManager {
 
   isDown(code: string): boolean {
     return this.keys.has(code);
+  }
+
+  /** Oblida les pulsacions pendents (p. ex. en canviar de pantalla). */
+  clearPressed(): void {
+    this.pressed.clear();
   }
 
   /** Retorna cert un sol cop per cada pulsació de la tecla. */

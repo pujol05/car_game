@@ -6,44 +6,16 @@ import { type DriveInput, neutralInput } from '../src/core/input';
 import { Vec3, clamp } from '../src/core/math';
 import type { Vehicle } from '../src/physics/vehicle';
 import type { BuiltTrack } from '../src/track/builder';
-import { edgeKey, rotateDir, rotateXZ } from '../src/track/grid';
-import { PIECES } from '../src/track/pieces';
+import { traceRoute } from '../src/track/connectivity';
 import type { Frame } from '../src/track/sweep';
 
-/**
- * Ordre de cursa: des de la peça de sortida, segueix els connectors fins a la
- * meta (o fins a tornar a la sortida). Retorna els índexs i si cada peça es
- * recorre al revés.
- */
+/** Ordre de cursa segons la connectivitat real de les peces. */
 export function raceOrder(track: BuiltTrack): { order: number[]; reversed: boolean[] } {
-  const pieces = track.data.pieces;
-  const byEdge = new Map<string, { piece: number; connector: number }[]>();
-  const keyOf = (i: number, ci: number) => {
-    const p = pieces[i];
-    const c = PIECES[p.type].connectors[ci];
-    const [rx, rz] = rotateXZ(c.cell[0], c.cell[2], p.r);
-    return edgeKey(p.x + rx, p.y + c.cell[1], p.z + rz, rotateDir(c.dir, p.r));
+  const route = traceRoute(track.data.pieces);
+  return {
+    order: route.steps.map((s) => s.piece),
+    reversed: route.steps.map((s) => s.reversed),
   };
-  pieces.forEach((_, i) => {
-    for (const ci of [0, 1]) {
-      const k = keyOf(i, ci);
-      byEdge.set(k, [...(byEdge.get(k) ?? []), { piece: i, connector: ci }]);
-    }
-  });
-  const start = pieces.findIndex((p) => p.type === 'start' || p.type === 'startFinish');
-  const order = [start];
-  const reversed = [false];
-  let current = start;
-  let exit = 1;
-  for (let guard = 0; guard < pieces.length; guard++) {
-    const next = (byEdge.get(keyOf(current, exit)) ?? []).find((e) => e.piece !== current);
-    if (!next || next.piece === start) break;
-    order.push(next.piece);
-    reversed.push(next.connector === 1);
-    current = next.piece;
-    exit = next.connector === 1 ? 0 : 1;
-  }
-  return { order, reversed };
 }
 
 /** Concatena les línies centrals de les peces en ordre de cursa. */
