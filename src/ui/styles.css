@@ -57,3 +57,24 @@ body {
   font-size: 16px;
   margin-left: 4px;
 }
+
+.turbo-bar {
+  position: absolute;
+  right: 24px;
+  bottom: 72px;
+  width: 180px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--ui-bg);
+  overflow: hidden;
+}
+
+.turbo-bar > div {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #3fa9ff, #7df9ff);
+}
+
+.turbo-bar.active > div {
+  background: linear-gradient(90deg, #ff7a18, #ffd23f);
+}

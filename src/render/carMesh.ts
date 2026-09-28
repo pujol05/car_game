@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import type { CarStats } from '../data/cars';
-import { WHEEL_POSITIONS, WHEEL_RADIUS, type Vehicle } from '../physics/vehicle';
+import { SUSPENSION_TRAVEL, WHEEL_MOUNTS, WHEEL_RADIUS, type Vehicle } from '../physics/vehicle';
 
 /** Extrudeix un perfil lateral (z, y) al llarg de l'eix X del cotxe. */
 function extrudeProfile(points: [number, number][], width: number): THREE.BufferGeometry {
@@ -125,9 +125,9 @@ export function buildCarModel(stats: CarStats): {
   const hubMat = flatMaterial(0xd8d8e0, { metalness: 0.6 });
 
   const wheels: THREE.Group[] = [];
-  for (const [x, y, z] of WHEEL_POSITIONS) {
+  for (const [x, y, z] of WHEEL_MOUNTS) {
     const pivot = new THREE.Group();
-    pivot.position.set(x, y, z);
+    pivot.position.set(x, y - SUSPENSION_TRAVEL * 0.75, z);
     const spin = new THREE.Group();
     const tire = new THREE.Mesh(tireGeo, tireMat);
     tire.castShadow = true;
@@ -169,6 +169,7 @@ export class CarView {
     this.wheelSpin += (vehicle.forwardSpeed * frameDt) / WHEEL_RADIUS;
     const steerAngle = -vehicle.steer * 0.45;
     this.wheels.forEach((pivot, i) => {
+      pivot.position.y = WHEEL_MOUNTS[i][1] - vehicle.wheels[i].suspensionLength;
       pivot.rotation.y = i < 2 ? steerAngle : 0;
       const spin = pivot.children[0];
       if (spin) spin.rotation.x = this.wheelSpin;
