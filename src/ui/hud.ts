@@ -3,6 +3,7 @@
 
 import type { Vehicle } from '../physics/vehicle';
 import { formatDelta, formatTime } from '../race/format';
+import { MEDAL_LABELS, nextMedal } from '../race/medals';
 import { COUNTDOWN_TICKS, type RaceEvent } from '../race/race';
 import type { RaceSession } from '../race/session';
 import { el } from './dom';
@@ -116,9 +117,12 @@ export class Hud {
     this.time.textContent = formatTime(race.time);
     this.lap.textContent = `Volta ${Math.min(race.lap, race.totalLaps)}/${race.totalLaps}`;
     this.checkpoints.textContent = `CP ${race.taken.size}/${race.checkpointCount}`;
-    this.best.textContent = session.best
-      ? `Millor ${formatTime(session.best.time)}`
-      : 'Sense rècord';
+    const bestTime = session.best?.time ?? null;
+    let bestText = bestTime !== null ? `Millor ${formatTime(bestTime)}` : 'Sense rècord';
+    const medals = session.track.data.medals;
+    const next = medals ? nextMedal(bestTime, medals) : null;
+    if (medals && next) bestText += ` · ${MEDAL_LABELS[next]} ${formatTime(medals[next])}`;
+    this.best.textContent = bestText;
 
     if (race.phase === 'countdown') {
       const seconds = Math.ceil(race.countdown / (COUNTDOWN_TICKS / 3));

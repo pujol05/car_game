@@ -41,6 +41,14 @@ export class TrackWalker {
     return this;
   }
 
+  /** Deixa un buit de `cells` cel·les (per als salts) i opcionalment baixa de nivell. */
+  gap(cells: number, drop = 0): this {
+    this.x += DIR_X[this.dir] * cells;
+    this.z += DIR_Z[this.dir] * cells;
+    this.y -= drop;
+    return this;
+  }
+
   straight(count = 1): this {
     for (let i = 0; i < count; i++) this.place('straight');
     return this;

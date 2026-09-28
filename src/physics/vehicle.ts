@@ -107,14 +107,6 @@ const WALL_RESTITUTION = 0.15;
 const WALL_FRICTION = 0.15;
 const ANGULAR_IMPULSE_SCALE = 0.5;
 
-/** Estat mínim per restaurar el cotxe (p. ex. en reaparèixer a un checkpoint). */
-export interface VehicleSnapshot {
-  pos: Vec3;
-  rot: Quat;
-  vel: Vec3;
-  turbo: number;
-}
-
 export interface WheelState {
   grounded: boolean;
   compression: number;
@@ -218,22 +210,10 @@ export class Vehicle {
     this.prevRot.copy(this.rot);
   }
 
-  snapshot(): VehicleSnapshot {
-    return {
-      pos: this.pos.clone(),
-      rot: this.rot.clone(),
-      vel: this.vel.clone(),
-      turbo: this.turbo,
-    };
-  }
-
-  /** Restaura una instantània: conserva la velocitat però no la rotació. */
-  restore(s: VehicleSnapshot): void {
-    const turbo = s.turbo;
-    this.reset(s.pos, 0);
-    this.rot.copy(s.rot);
-    this.prevRot.copy(s.rot);
-    this.vel.copy(s.vel);
+  /** Col·loca el cotxe (p. ex. en reaparèixer) amb una velocitat cap endavant. */
+  place(position: Vec3, heading: number, speed: number, turbo: number): void {
+    this.reset(position, heading);
+    this.vel.copy(this.forward(this.tmp)).scale(speed);
     this.turbo = turbo;
   }
 

@@ -890,3 +890,65 @@ kbd {
     width: 180px;
   }
 }
+
+/* --- Medalles --- */
+
+.medal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.medal-disc {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.medal-small {
+  margin-right: 8px;
+}
+
+.medal-big {
+  justify-content: center;
+  margin: 4px 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.medal-big .medal-disc {
+  width: 34px;
+  height: 34px;
+  border-width: 3px;
+}
+
+.medal-author .medal-disc {
+  background: radial-gradient(circle at 35% 35%, #b6ffe0, #1fc98a 60%, #0c7a52);
+}
+
+.medal-gold .medal-disc {
+  background: radial-gradient(circle at 35% 35%, #fff4b0, #ffc928 60%, #b8860b);
+}
+
+.medal-silver .medal-disc {
+  background: radial-gradient(circle at 35% 35%, #ffffff, #c9d1dc 60%, #7d8794);
+}
+
+.medal-bronze .medal-disc {
+  background: radial-gradient(circle at 35% 35%, #ffd9b0, #cd7f32 60%, #7a4a1c);
+}
+
+.results-next {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--ui-muted);
+}
+
+.car-desc {
+  font-size: 12px;
+  color: var(--ui-muted);
+}

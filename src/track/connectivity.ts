@@ -91,6 +91,8 @@ export type RouteEnd = 'loop' | 'finish' | 'deadEnd' | 'wrongWay' | 'revisit' | 
 export interface Route {
   steps: RouteStep[];
   end: RouteEnd;
+  /** Peces de desacceleració connectades després de la meta. */
+  runOff?: number[];
   /** Connector on s'acaba el recorregut quan no es pot continuar. */
   stuckAt?: ConnectorInfo;
 }
@@ -117,10 +119,26 @@ export function traceRoute(pieces: readonly PieceData[]): Route {
     steps.push({ piece: next.piece, reversed: next.connector === 1 });
     if (piece.type === 'finish') {
       return next.connector === 0
-        ? { steps, end: 'finish' }
+        ? { steps, end: 'finish', runOff: followRunOff(index, next.piece, visited) }
         : { steps, end: 'wrongWay', stuckAt: next };
     }
     exit = index.connectors[next.piece][next.connector === 0 ? 1 : 0];
   }
   return { steps, end: 'revisit' };
+}
+
+/** Peces que continuen després de la meta (zona de frenada). */
+function followRunOff(index: ConnectorIndex, finish: number, visited: Set<number>): number[] {
+  const out: number[] = [];
+  let piece = finish;
+  let exit = index.connectors[finish][1];
+  for (let guard = 0; guard < index.pieces.length; guard++) {
+    const next = index.link(exit);
+    if (!next || visited.has(next.piece) || next.piece === piece) break;
+    visited.add(next.piece);
+    out.push(next.piece);
+    piece = next.piece;
+    exit = index.connectors[piece][next.connector === 0 ? 1 : 0];
+  }
+  return out;
 }

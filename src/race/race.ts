@@ -5,7 +5,7 @@
 import { type DriveInput, neutralInput } from '../core/input';
 import { DT } from '../core/loop';
 import { Vec3 } from '../core/math';
-import type { Vehicle, VehicleSnapshot } from '../physics/vehicle';
+import { RIDE_HEIGHT, type Vehicle } from '../physics/vehicle';
 import type { BuiltTrack, Trigger } from '../track/builder';
 import { GROUND_Y } from '../track/grid';
 
@@ -13,6 +13,16 @@ export const COUNTDOWN_TICKS = 180;
 const MS_PER_TICK = DT * 1000;
 /** Distància fora dels límits del circuit a partir de la qual es reapareix. */
 const OUT_OF_BOUNDS_MARGIN = 150;
+/**
+ * On es reapareix: centrat a la línia del checkpoint, mirant en el sentit de la
+ * marxa i aturat (si es conservés la velocitat, en una corba presa massa ràpid
+ * es tornaria a sortir de la pista una vegada i una altra).
+ */
+interface RespawnPoint {
+  pos: Vec3;
+  heading: number;
+  turbo: number;
+}
 
 export type RacePhase = 'countdown' | 'running' | 'finished';
 
@@ -40,7 +50,7 @@ export class RaceTracker {
   finishTime: number | null = null;
 
   private lapStart = 0;
-  private snapshot: VehicleSnapshot | null = null;
+  private respawnPoint: RespawnPoint | null = null;
   private readonly insideBoost = new Set<number>();
   private readonly events: RaceEvent[] = [];
   private readonly coast = { ...neutralInput(), brake: 0.4 };
@@ -92,7 +102,8 @@ export class RaceTracker {
   }
 
   respawn(): void {
-    if (this.snapshot) this.vehicle.restore(this.snapshot);
+    const p = this.respawnPoint;
+    if (p) this.vehicle.place(p.pos, p.heading, 0, p.turbo);
     else this.resetVehicleToStart();
     this.insideBoost.clear();
     this.events.push({ type: 'respawn' });
@@ -133,15 +144,25 @@ export class RaceTracker {
         if (this.taken.has(i)) continue;
         this.taken.add(i);
         this.splits.push(time);
-        this.snapshot = this.vehicle.snapshot();
+        this.saveRespawnPoint(t, crossing.forward);
         this.events.push({ type: 'checkpoint', time, split: this.splits.length - 1 });
       } else if (crossing.forward) {
-        this.crossFinishLine(time);
+        this.crossFinishLine(time, t);
       }
     }
   }
 
-  private crossFinishLine(time: number): void {
+  /** Guarda el punt de reaparició just després de la línia creuada. */
+  private saveRespawnPoint(t: Trigger, forward: boolean): void {
+    const dir = t.axisZ.clone().scale(forward ? 1 : -1);
+    this.respawnPoint = {
+      pos: t.ground.clone().addScaled(dir, 1.5).addScaled(t.axisY, RIDE_HEIGHT),
+      heading: Math.atan2(dir.x, dir.z),
+      turbo: this.vehicle.turbo,
+    };
+  }
+
+  private crossFinishLine(time: number, t: Trigger): void {
     const remaining = this.checkpointCount - this.taken.size;
     if (remaining > 0) {
       this.events.push({ type: 'missingCheckpoints', remaining });
@@ -161,7 +182,7 @@ export class RaceTracker {
     this.events.push({ type: 'lap', time, split, lap: this.lap, lapTime });
     this.lap++;
     this.taken.clear();
-    this.snapshot = this.vehicle.snapshot();
+    this.saveRespawnPoint(t, true);
   }
 
   private checkBoost(index: number, t: Trigger): void {

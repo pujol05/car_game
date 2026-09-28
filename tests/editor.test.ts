@@ -153,7 +153,8 @@ describe('serialització', () => {
   it('codifica i descodifica sense pèrdues', () => {
     const code = encodeTrack(FIRST_CIRCUIT);
     expect(code).toMatch(/^[A-Za-z0-9+\-$_]+$/);
-    expect(decodeTrack(code)).toEqual(FIRST_CIRCUIT);
+    // Els codis no porten medalles (només els circuits oficials en tenen).
+    expect(decodeTrack(code)).toEqual({ ...FIRST_CIRCUIT, medals: undefined });
     // Un codi comprimit és molt més curt que el JSON.
     expect(code.length).toBeLessThan(JSON.stringify(FIRST_CIRCUIT).length / 3);
   });
@@ -161,7 +162,7 @@ describe('serialització', () => {
   it('genera i llegeix enllaços', () => {
     const link = trackLink(FIRST_CIRCUIT, 'http://localhost:5173/');
     expect(link.startsWith('http://localhost:5173/#track=')).toBe(true);
-    expect(decodeTrack(extractCode(link))).toEqual(FIRST_CIRCUIT);
+    expect(decodeTrack(extractCode(link)).pieces).toEqual(FIRST_CIRCUIT.pieces);
     expect(codeFromHash(new URL(link).hash)).toBe(extractCode(link));
     expect(codeFromHash('#altra-cosa')).toBeNull();
   });

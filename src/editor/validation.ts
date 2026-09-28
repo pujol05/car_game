@@ -74,6 +74,7 @@ export function validateTrack(data: TrackData): ValidationResult {
     const missing = pieces.filter((p, i) => p.type === 'checkpoint' && !onRoute.has(i)).length;
     if (missing === 1) errors.push('Hi ha 1 checkpoint fora del recorregut.');
     else if (missing > 1) errors.push(`Hi ha ${missing} checkpoints fora del recorregut.`);
+    for (const i of route.runOff ?? []) onRoute.add(i);
     const loose = pieces.length - onRoute.size;
     if (loose > 0 && (route.end === 'loop' || route.end === 'finish')) {
       warnings.push(

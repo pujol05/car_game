@@ -17,6 +17,8 @@ export interface Trigger {
   axisY: Vec3;
   axisZ: Vec3;
   half: Vec3;
+  /** Punt de la línia a nivell de la calçada (per reaparèixer). */
+  ground: Vec3;
 }
 
 export interface BuiltPiece {
@@ -98,6 +100,7 @@ export function buildTrack(source: TrackData): BuiltTrack {
         axisY: new Vec3(0, 1, 0),
         axisZ: g.dirToWorld(new Vec3(0, 0, 1)),
         half: t.half.clone(),
+        ground: g.toWorld(new Vec3(t.center.x, 0, t.center.z)),
       });
     }
     if (features.spawn && !spawn) {

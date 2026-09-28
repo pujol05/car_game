@@ -7,6 +7,8 @@ import { seedFrom } from '../core/random';
 import type { Screen } from '../core/screen';
 import { getSettings, onSettingsChange } from '../core/settings';
 import { type CarStats, carById } from '../data/cars';
+import { formatTime } from '../race/format';
+import { MEDAL_LABELS, medalFor, nextMedal } from '../race/medals';
 import { COUNTDOWN_TICKS, type RaceEvent } from '../race/race';
 import { trackKey } from '../race/records';
 import { RaceSession } from '../race/session';
@@ -21,6 +23,7 @@ import { TrackView } from '../render/trackView';
 import { type BuiltTrack, buildTrack } from '../track/builder';
 import type { TrackData } from '../track/types';
 import { Hud } from './hud';
+import { medalBadge } from './medalBadge';
 import { type OverlayAction, PauseMenu, ResultsPanel } from './raceOverlays';
 
 export interface RaceScreenOptions {
@@ -180,6 +183,10 @@ export class RaceScreen implements Screen {
       actions.push({ label: 'Canviar de circuit', onClick: () => onChange() });
     }
     actions.push({ ...this.quitAction(), key: 'Esc' });
+    const medals = this.options.track.medals;
+    const medal = medals ? medalFor(result.time, medals) : null;
+    const best = session.best ? Math.min(session.best.time, result.time) : result.time;
+    const next = medals ? nextMedal(best, medals) : null;
     this.results.show(
       {
         title: result.improved ? 'Nou rècord!' : 'Meta!',
@@ -187,6 +194,11 @@ export class RaceScreen implements Screen {
         improved: result.improved,
         delta: result.previous ? result.time - result.previous.time : null,
         lapTimes: session.race.lapTimes,
+        medal: medal ? medalBadge(medal, 'big') : undefined,
+        nextTarget:
+          medals && next
+            ? `Següent: ${MEDAL_LABELS[next]} en ${formatTime(medals[next])}`
+            : undefined,
       },
       actions,
     );

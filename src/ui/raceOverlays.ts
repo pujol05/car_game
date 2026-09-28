@@ -70,6 +70,8 @@ export interface ResultsData {
   lapTimes: number[];
   /** Element opcional amb la medalla aconseguida. */
   medal?: HTMLElement;
+  /** Text amb la següent medalla per aconseguir. */
+  nextTarget?: string;
 }
 
 export class ResultsPanel extends Overlay {
@@ -92,6 +94,7 @@ export class ResultsPanel extends Overlay {
     } else if (data.delta !== null) {
       el('div', 'delta-bad results-record', this.box, `${formatDelta(data.delta)} del rècord`);
     }
+    if (data.nextTarget) el('div', 'results-next', this.box, data.nextTarget);
     if (data.lapTimes.length > 1) {
       const best = Math.min(...data.lapTimes);
       const list = el('ul', 'results-laps', this.box);

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { type InputManager, isTextField } from '../core/input';
 import { clamp } from '../core/math';
 import type { Screen } from '../core/screen';
-import { FIRST_CIRCUIT } from '../data/tracks';
+import { OFFICIAL_TRACKS } from '../data/tracks';
 import type { SceneRenderer } from '../render/scene';
 import { worldCells } from '../track/builder';
 import { GRID_HALF, LEVEL, MAX_LEVEL, TILE } from '../track/grid';
@@ -270,11 +270,15 @@ export class EditorScreen implements Screen {
       },
       onDelete: () => deleteSavedTrack(saved.id),
     }));
-    entries.push({
-      name: FIRST_CIRCUIT.name,
-      detail: 'Circuit inclòs (com a plantilla)',
-      onLoad: () => this.openTrack(FIRST_CIRCUIT, `«${FIRST_CIRCUIT.name}» carregat`),
-    });
+    for (const official of OFFICIAL_TRACKS) {
+      entries.push({
+        name: official.name,
+        detail: 'Circuit oficial (com a plantilla)',
+        // Una còpia editable no té medalles oficials.
+        onLoad: () =>
+          this.openTrack({ ...official, medals: undefined }, `«${official.name}» carregat`),
+      });
+    }
     this.panel.showLoad(entries);
   }
 

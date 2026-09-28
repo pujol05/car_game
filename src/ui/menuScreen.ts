@@ -11,6 +11,7 @@ import { CARS, type CarStats, carById } from '../data/cars';
 import { OFFICIAL_TRACKS } from '../data/tracks';
 import { playableSavedTracks } from '../editor/savedTracks';
 import { formatTime } from '../race/format';
+import { medalFor } from '../race/medals';
 import { loadRecord, trackKey } from '../race/records';
 import { Decoration } from '../render/decoration';
 import type { SceneRenderer } from '../render/scene';
@@ -18,6 +19,7 @@ import { TrackView } from '../render/trackView';
 import { buildTrack } from '../track/builder';
 import type { TrackData } from '../track/types';
 import { button, el } from './dom';
+import { medalBadge } from './medalBadge';
 import { buildOptions } from './optionsPanel';
 
 export type MenuView = 'main' | 'select' | 'options';
@@ -204,6 +206,7 @@ export class MenuScreen implements Screen {
       const swatch = el('div', 'car-swatch', card);
       swatch.style.background = `#${car.color.toString(16).padStart(6, '0')}`;
       el('strong', '', card, car.name);
+      el('small', 'car-desc', card, car.description);
       for (const [label, key] of [
         ['Velocitat', 'maxSpeed'],
         ['Acceleració', 'accel'],
@@ -231,7 +234,11 @@ export class MenuScreen implements Screen {
       el('strong', '', info, entry.data.name);
       el('small', '', info, entry.detail);
       const record = loadRecord(trackKey(entry.data));
-      el('span', 'track-best', item, record ? formatTime(record.time) : '—');
+      const best = el('span', 'track-best', item);
+      const medals = entry.data.medals;
+      const medal = record && medals ? medalFor(record.time, medals) : null;
+      if (medal) best.append(medalBadge(medal));
+      best.append(record ? formatTime(record.time) : '—');
       item.addEventListener('click', () => this.select({ track: entry.id }));
     }
 

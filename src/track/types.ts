@@ -1,6 +1,8 @@
 // Tipus de dades dels circuits. Un circuit és una llista de peces sobre una
 // graella 3D; es pot serialitzar directament a JSON.
 
+import type { MedalTimes } from '../race/medals';
+
 export const PIECE_TYPES = [
   'straight',
   'curveSmall',
@@ -36,6 +38,8 @@ export interface TrackData {
   /** Nombre de voltes (1 en circuits de sortida i meta separades). */
   laps: number;
   pieces: PieceData[];
+  /** Temps de les medalles (només als circuits oficials). */
+  medals?: MedalTimes;
 }
 
 export function isPieceType(value: unknown): value is PieceType {
