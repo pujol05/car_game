@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { mulberry32, seedFrom } from '../src/core/random';
-import { sanitizeSettings } from '../src/core/settings';
+import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/core/settings';
 import { DEFAULT_CAR } from '../src/data/cars';
 import { FIRST_CIRCUIT } from '../src/data/tracks';
 import { Vehicle } from '../src/physics/vehicle';
@@ -13,15 +13,25 @@ import { drive } from './helpers';
 
 describe('configuració', () => {
   it('descarta valors invàlids i manté els vàlids', () => {
-    expect(sanitizeSettings(null)).toEqual({ timeOfDay: 'day', speedLines: true });
-    expect(sanitizeSettings({ timeOfDay: 'night', speedLines: false })).toEqual({
+    expect(sanitizeSettings(null)).toEqual(DEFAULT_SETTINGS);
+    const custom = sanitizeSettings({
       timeOfDay: 'night',
       speedLines: false,
+      volume: 0.25,
+      quality: 'low',
+      particles: false,
+      ghost: false,
     });
-    expect(sanitizeSettings({ timeOfDay: 'migdia', speedLines: 'sí' })).toEqual({
-      timeOfDay: 'day',
-      speedLines: true,
+    expect(custom).toEqual({
+      timeOfDay: 'night',
+      speedLines: false,
+      volume: 0.25,
+      quality: 'low',
+      particles: false,
+      ghost: false,
     });
+    const bad = sanitizeSettings({ timeOfDay: 'migdia', volume: 7, quality: 'ultra', ghost: 'no' });
+    expect(bad).toEqual({ ...DEFAULT_SETTINGS, volume: 1 });
   });
 });
 

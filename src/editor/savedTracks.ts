@@ -2,6 +2,7 @@
 
 import { loadJson, saveJson } from '../core/storage';
 import { decodeTrack, encodeTrack } from '../track/serialize';
+import { validateTrack } from './validation';
 import type { TrackData } from '../track/types';
 
 export interface SavedTrack {
@@ -58,6 +59,16 @@ export function loadSavedTrack(saved: SavedTrack): TrackData | null {
   } catch {
     return null;
   }
+}
+
+/** Circuits de l'usuari que es poden córrer (vàlids). */
+export function playableSavedTracks(): { saved: SavedTrack; data: TrackData }[] {
+  const out: { saved: SavedTrack; data: TrackData }[] = [];
+  for (const saved of listSavedTracks()) {
+    const data = loadSavedTrack(saved);
+    if (data && validateTrack(data).valid) out.push({ saved, data });
+  }
+  return out;
 }
 
 export function saveDraft(data: TrackData): void {

@@ -1,7 +1,7 @@
 // Escena de three.js: renderer, cel, llums, boira i terra.
 
 import * as THREE from 'three';
-import type { TimeOfDay } from '../core/settings';
+import type { Quality, TimeOfDay } from '../core/settings';
 import { GROUND_Y } from '../track/grid';
 import { Sky, TIME_PRESETS, type TimePreset } from './sky';
 
@@ -59,6 +59,22 @@ export class SceneRenderer {
 
   get isNight(): boolean {
     return this.preset.night;
+  }
+
+  /** Qualitat gràfica: resolució interna i ombres. */
+  setQuality(quality: Quality): void {
+    const dpr = window.devicePixelRatio || 1;
+    const ratio =
+      quality === 'high' ? Math.min(dpr, 2) : quality === 'medium' ? Math.min(dpr, 1.25) : 0.85;
+    this.renderer.setPixelRatio(ratio);
+    this.sun.castShadow = quality !== 'low';
+    const size = quality === 'high' ? 2048 : 1024;
+    if (this.sun.shadow.mapSize.x !== size) {
+      this.sun.shadow.mapSize.set(size, size);
+      this.sun.shadow.map?.dispose();
+      this.sun.shadow.map = null;
+    }
+    this.resize();
   }
 
   setTimeOfDay(time: TimeOfDay): void {

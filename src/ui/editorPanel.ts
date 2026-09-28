@@ -4,6 +4,7 @@ import type { ValidationResult } from '../editor/validation';
 import { PIECES } from '../track/pieces';
 import { MAX_NAME_LENGTH } from '../track/serialize';
 import type { PieceType } from '../track/types';
+import { button, el } from './dom';
 
 export type EditorTool = 'place' | 'erase';
 
@@ -60,32 +61,6 @@ export interface LoadEntry {
   detail: string;
   onLoad(): void;
   onDelete?: () => void;
-}
-
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className = '',
-  parent?: HTMLElement,
-  text?: string,
-): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  if (className) e.className = className;
-  if (text !== undefined) e.textContent = text;
-  parent?.append(e);
-  return e;
-}
-
-function button(
-  parent: HTMLElement,
-  text: string,
-  onClick: () => void,
-  title = '',
-): HTMLButtonElement {
-  const b = el('button', 'btn', parent, text);
-  b.type = 'button';
-  if (title) b.title = title;
-  b.addEventListener('click', onClick);
-  return b;
 }
 
 export class EditorPanel {

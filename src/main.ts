@@ -1,16 +1,18 @@
-// Punt d'entrada: crea el renderer, l'entrada i les pantalles del joc, i
-// arrenca el game loop.
+// Punt d'entrada: crea el renderer, l'entrada, l'àudio i les pantalles del
+// joc, gestiona la navegació entre elles i arrenca el game loop.
 
 import './ui/styles.css';
+import { AudioEngine } from './audio/audio';
 import { InputManager } from './core/input';
 import { FixedStepLoop } from './core/loop';
 import { ScreenManager } from './core/screen';
-import { DEFAULT_CAR } from './data/cars';
-import { FIRST_CIRCUIT } from './data/tracks';
+import { getSettings, onSettingsChange } from './core/settings';
+import { CARS, type CarStats } from './data/cars';
 import { EditorScreen } from './editor/editorScreen';
 import { SceneRenderer } from './render/scene';
 import { codeFromHash, decodeTrack } from './track/serialize';
 import type { TrackData } from './track/types';
+import { MenuScreen, type MenuView } from './ui/menuScreen';
 import { RaceScreen } from './ui/raceScreen';
 
 const appEl = document.getElementById('app');
@@ -21,22 +23,53 @@ const ui: HTMLElement = uiEl;
 const view = new SceneRenderer(appEl);
 const input = new InputManager();
 const screens = new ScreenManager();
+const audio = new AudioEngine();
 
-function race(track: TrackData, backLabel: string): void {
+function applyGlobalSettings(): void {
+  const s = getSettings();
+  audio.setVolume(s.volume);
+  view.setQuality(s.quality);
+}
+applyGlobalSettings();
+onSettingsChange(applyGlobalSettings);
+
+// L'àudio només es pot activar després d'un gest de l'usuari.
+window.addEventListener('pointerdown', () => audio.unlock());
+window.addEventListener('keydown', () => audio.unlock());
+// So de clic a tots els botons de la interfície.
+ui.addEventListener('click', (e) => {
+  if (e.target instanceof HTMLElement && e.target.closest('button')) audio.click();
+});
+
+let lastCar: CarStats = CARS[0];
+
+const menu = new MenuScreen(view, input, ui, {
+  onRace: (track, car) => startRace(track, car, false),
+  onEditor: () => screens.show(editor),
+});
+
+const editor = new EditorScreen(view, input, ui, {
+  onTest: (track) => startRace(track, lastCar, true),
+  onExit: () => showMenu('main'),
+});
+
+function showMenu(name: MenuView): void {
+  menu.setView(name);
+  screens.show(menu);
+}
+
+function startRace(track: TrackData, car: CarStats, testMode: boolean): void {
+  lastCar = car;
   screens.show(
-    new RaceScreen(view, input, ui, {
+    new RaceScreen(view, input, ui, audio, {
       track,
-      car: DEFAULT_CAR,
-      onBack: () => screens.show(editor),
-      backLabel,
+      car,
+      testMode,
+      onQuit: () => (testMode ? screens.show(editor) : showMenu('main')),
+      onChangeTrack: testMode ? undefined : () => showMenu('select'),
     }),
   );
 }
-
-const editor = new EditorScreen(view, input, ui, {
-  onTest: (track) => race(track, "Esc: tornar a l'editor"),
-  onExit: () => race(FIRST_CIRCUIT, 'Esc: editor'),
-});
 
 /** Si l'URL porta un circuit (#track=...), l'obre a l'editor. */
 function openFromHash(): boolean {
@@ -46,7 +79,7 @@ function openFromHash(): boolean {
   try {
     const track = decodeTrack(code);
     screens.show(editor);
-    editor.openTrack(track, `«${track.name}» carregat des de l'enllaç`);
+    editor.openTrack(track, `«${track.name}» carregat des de l'enllaç. Prem Provar per córrer-hi!`);
     return true;
   } catch {
     return false;
@@ -54,7 +87,7 @@ function openFromHash(): boolean {
 }
 
 window.addEventListener('hashchange', () => openFromHash());
-if (!openFromHash()) race(FIRST_CIRCUIT, 'Esc: editor');
+if (!openFromHash()) showMenu('main');
 
 const loop = new FixedStepLoop(
   () => screens.tick(),

@@ -20,3 +20,6 @@ function buildFirstCircuit(): TrackData {
 }
 
 export const FIRST_CIRCUIT: TrackData = buildFirstCircuit();
+
+/** Circuits oficials, en ordre de dificultat. */
+export const OFFICIAL_TRACKS: readonly TrackData[] = [FIRST_CIRCUIT];
