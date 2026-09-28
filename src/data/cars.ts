@@ -21,3 +21,10 @@ export const DEFAULT_CAR: CarStats = {
   grip: 38,
   color: 0xff3b5c,
 };
+
+export const CARS: readonly CarStats[] = [DEFAULT_CAR];
+
+/** Cotxe per identificador (el cotxe per defecte si no existeix). */
+export function carById(id: string): CarStats {
+  return CARS.find((c) => c.id === id) ?? DEFAULT_CAR;
+}

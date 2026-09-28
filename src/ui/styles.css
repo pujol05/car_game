@@ -186,3 +186,22 @@ body {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+
+.hud-best {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.85;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.delta-good {
+  color: #4dff88;
+}
+
+.delta-bad {
+  color: #ff5c5c;
+}

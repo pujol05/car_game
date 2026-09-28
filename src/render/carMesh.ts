@@ -141,6 +141,20 @@ export function buildCarModel(stats: CarStats): {
   return { root, body, wheels };
 }
 
+/** Converteix el model en un fantasma translúcid (sense ombres). */
+function makeGhost(root: THREE.Object3D): void {
+  root.traverse((o) => {
+    if (!(o instanceof THREE.Mesh)) return;
+    const mat = (o.material as THREE.MeshStandardMaterial).clone();
+    mat.transparent = true;
+    mat.opacity = 0.35;
+    mat.depthWrite = false;
+    o.material = mat;
+    o.castShadow = false;
+    o.receiveShadow = false;
+  });
+}
+
 /** Representació visual d'un vehicle, interpolada entre ticks de física. */
 export class CarView {
   readonly root: THREE.Group;
@@ -149,10 +163,21 @@ export class CarView {
   private readonly tmpQuat = new THREE.Quaternion();
   private readonly prevQuat = new THREE.Quaternion();
 
-  constructor(stats: CarStats) {
+  constructor(stats: CarStats, options: { ghost?: boolean } = {}) {
     const model = buildCarModel(stats);
     this.root = model.root;
     this.wheels = model.wheels;
+    if (options.ghost) makeGhost(this.root);
+  }
+
+  dispose(): void {
+    this.root.removeFromParent();
+    this.root.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        (o.material as THREE.Material).dispose();
+      }
+    });
   }
 
   update(vehicle: Vehicle, alpha: number, frameDt: number): void {

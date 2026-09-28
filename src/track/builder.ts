@@ -49,7 +49,24 @@ export function worldCells(piece: PieceData): [number, number, number][] {
   });
 }
 
-export function buildTrack(data: TrackData): BuiltTrack {
+/**
+ * Ordre canònic de les peces. El circuit es construeix sempre en aquest ordre
+ * perquè la simulació (i per tant els fantasmes) no depengui de l'ordre en
+ * què s'han col·locat les peces a l'editor.
+ */
+export function canonicalPieces(pieces: readonly PieceData[]): PieceData[] {
+  return [...pieces].sort(
+    (a, b) =>
+      a.y - b.y ||
+      a.z - b.z ||
+      a.x - b.x ||
+      a.r - b.r ||
+      (a.type < b.type ? -1 : a.type > b.type ? 1 : 0),
+  );
+}
+
+export function buildTrack(source: TrackData): BuiltTrack {
+  const data: TrackData = { ...source, pieces: canonicalPieces(source.pieces) };
   const world = new CollisionWorld();
   world.groundY = GROUND_Y;
   world.groundMaterial = Surface.Grass;

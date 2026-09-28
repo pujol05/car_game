@@ -8,3 +8,12 @@ export function formatTime(ms: number): string {
   const millis = total % 1000;
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
+
+/** Diferència amb signe, p. ex. "+0.250" o "-1.034". */
+export function formatDelta(ms: number): string {
+  const sign = ms < 0 ? '-' : '+';
+  const abs = Math.abs(Math.round(ms));
+  const seconds = Math.floor(abs / 1000);
+  const millis = abs % 1000;
+  return `${sign}${seconds}.${String(millis).padStart(3, '0')}`;
+}

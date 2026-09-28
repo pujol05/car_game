@@ -1,8 +1,9 @@
-// HUD de cursa: temps, volta, checkpoints, compte enrere i missatges.
+// HUD de cursa: temps, volta, checkpoints, compte enrere, parcials i missatges.
 
-import { COUNTDOWN_TICKS, type RaceEvent, type RaceTracker } from '../race/race';
-import { formatTime } from '../race/format';
 import type { Vehicle } from '../physics/vehicle';
+import { formatDelta, formatTime } from '../race/format';
+import { COUNTDOWN_TICKS, type RaceEvent } from '../race/race';
+import type { RaceSession } from '../race/session';
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -20,6 +21,7 @@ export class Hud {
   private readonly time: HTMLDivElement;
   private readonly lap: HTMLDivElement;
   private readonly checkpoints: HTMLDivElement;
+  private readonly best: HTMLDivElement;
   private readonly countdown: HTMLDivElement;
   private readonly message: HTMLDivElement;
   private readonly speed: HTMLDivElement;
@@ -34,6 +36,7 @@ export class Hud {
     this.lap = el('div', 'hud-chip', top);
     this.time = el('div', 'hud-time', top);
     this.checkpoints = el('div', 'hud-chip', top);
+    this.best = el('div', 'hud-best', this.root);
     this.countdown = el('div', 'hud-countdown', this.root);
     this.message = el('div', 'hud-message', this.root);
     this.speed = el('div', 'speed', this.root);
@@ -45,20 +48,39 @@ export class Hud {
       'WASD/fletxes: conduir · Espai: derrapar · Shift: turbo · R: reaparèixer · Enter: reiniciar';
   }
 
-  show(text: string, seconds = 2, className = ''): void {
-    this.message.textContent = text;
+  /** Mostra un missatge temporal. `html` només conté text generat pel joc. */
+  private show(html: string, seconds = 2, className = ''): void {
+    this.message.innerHTML = html;
     this.message.className = `hud-message visible ${className}`;
     this.messageTimer = seconds;
   }
 
-  onEvents(events: readonly RaceEvent[], race: RaceTracker): void {
+  private splitHtml(label: string, time: number, delta: number | null): string {
+    const deltaHtml =
+      delta === null
+        ? ''
+        : ` <span class="${delta <= 0 ? 'delta-good' : 'delta-bad'}">${formatDelta(delta)}</span>`;
+    return `${label} ${formatTime(time)}${deltaHtml}`;
+  }
+
+  onEvents(events: readonly RaceEvent[], session: RaceSession): void {
+    const { race } = session;
     for (const e of events) {
       switch (e.type) {
         case 'checkpoint':
-          this.show(`CP ${race.taken.size}/${race.checkpointCount}  ${formatTime(e.time)}`);
+          this.show(
+            this.splitHtml(
+              `CP ${race.taken.size}/${race.checkpointCount}`,
+              e.time,
+              session.splitDelta(e.split, e.time),
+            ),
+          );
           break;
         case 'lap':
-          this.show(`Volta ${e.lap}  ${formatTime(e.lapTime)}`, 2.5);
+          this.show(
+            this.splitHtml(`Volta ${e.lap}`, e.time, session.splitDelta(e.split, e.time)),
+            2.5,
+          );
           break;
         case 'missingCheckpoints':
           this.show(`Falten ${e.remaining} checkpoints!`, 2, 'warning');
@@ -72,10 +94,14 @@ export class Hud {
     }
   }
 
-  update(race: RaceTracker, vehicle: Vehicle, frameDt: number): void {
+  update(session: RaceSession, vehicle: Vehicle, frameDt: number): void {
+    const { race } = session;
     this.time.textContent = formatTime(race.time);
     this.lap.textContent = `Volta ${Math.min(race.lap, race.totalLaps)}/${race.totalLaps}`;
     this.checkpoints.textContent = `CP ${race.taken.size}/${race.checkpointCount}`;
+    this.best.textContent = session.best
+      ? `Millor ${formatTime(session.best.time)}`
+      : 'Sense rècord';
 
     if (race.phase === 'countdown') {
       const seconds = Math.ceil(race.countdown / (COUNTDOWN_TICKS / 3));
@@ -97,8 +123,18 @@ export class Hud {
     this.turboFill.style.width = `${Math.round(vehicle.turbo * 100)}%`;
     this.turbo.classList.toggle('active', vehicle.turboActive);
 
-    if (race.phase === 'finished' && race.finishTime !== null) {
-      this.finish.innerHTML = `<h2>META!</h2><p>${formatTime(race.finishTime)}</p><small>Prem Enter per tornar a córrer</small>`;
+    const result = session.result;
+    if (race.phase === 'finished' && result) {
+      let extra = '';
+      if (result.improved) {
+        const delta = result.previous ? ` ${formatDelta(result.time - result.previous.time)}` : '';
+        extra = `<div class="delta-good">NOU RÈCORD!${delta}</div>`;
+      } else if (result.previous) {
+        extra = `<div class="delta-bad">${formatDelta(result.time - result.previous.time)}</div>`;
+      }
+      this.finish.innerHTML =
+        `<h2>META!</h2><p>${formatTime(result.time)}</p>${extra}` +
+        '<small>Prem Enter per tornar a córrer</small>';
       this.finish.classList.add('visible');
     } else {
       this.finish.classList.remove('visible');

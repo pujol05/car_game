@@ -48,6 +48,11 @@ const BODY_SPHERES: readonly (readonly [number, number, number, number])[] = [
 export const RIDE_HEIGHT = 0.75;
 
 // --- Constants físiques ---
+/**
+ * Versió de la física. Cal incrementar-la quan canviï qualsevol cosa que
+ * afecti la simulació: els fantasmes gravats amb una altra versió es descarten.
+ */
+export const PHYSICS_VERSION = 1;
 export const GRAVITY = 18;
 const SUBSTEPS = 4;
 const SPRING = 40;
