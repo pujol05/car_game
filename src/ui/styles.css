@@ -1,0 +1,59 @@
+:root {
+  --ui-bg: rgba(12, 14, 28, 0.72);
+  --ui-fg: #ffffff;
+  --ui-accent: #ffd23f;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: var(--ui-fg);
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+#app canvas {
+  display: block;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hint {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ui-bg);
+  font-size: 14px;
+}
+
+.speed {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  font-size: 42px;
+  font-weight: 800;
+  font-style: italic;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.speed small {
+  font-size: 16px;
+  margin-left: 4px;
+}
