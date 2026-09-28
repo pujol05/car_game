@@ -49,6 +49,13 @@ export class Hud {
       (backHint ? ` · ${backHint}` : '');
   }
 
+  /** Missatge breu de text pla (p. ex. en canviar una opció). */
+  flash(text: string): void {
+    this.message.textContent = text;
+    this.message.className = 'hud-message visible';
+    this.messageTimer = 1.5;
+  }
+
   /** Mostra un missatge temporal. `html` només conté text generat pel joc. */
   private show(html: string, seconds = 2, className = ''): void {
     this.message.innerHTML = html;

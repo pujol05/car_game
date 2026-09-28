@@ -133,6 +133,8 @@ export class EditorScreen implements Screen {
 
   enter(): void {
     this.input.clearPressed();
+    // L'editor sempre es veu de dia, per claredat.
+    this.view.setTimeOfDay('day');
     this.view.scene.add(this.editorView.root);
     this.ui.append(this.panel.root);
     this.attachListeners();

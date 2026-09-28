@@ -29,11 +29,16 @@ function flatMaterial(color: number, extra: THREE.MeshStandardMaterialParameters
   });
 }
 
-export function buildCarModel(stats: CarStats): {
+export interface CarModel {
   root: THREE.Group;
   body: THREE.Group;
   wheels: THREE.Group[];
-} {
+  headMat: THREE.MeshStandardMaterial;
+  tailMat: THREE.MeshStandardMaterial;
+  flame: THREE.Group;
+}
+
+export function buildCarModel(stats: CarStats): CarModel {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
@@ -109,12 +114,52 @@ export function buildCarModel(stats: CarStats): {
     body.add(tail);
   }
 
+  // Tubs d'escapament.
+  const pipeGeo = new THREE.CylinderGeometry(0.09, 0.11, 0.3, 6);
+  pipeGeo.rotateX(Math.PI / 2);
+  for (const x of [-0.4, 0.4]) {
+    const pipe = new THREE.Mesh(pipeGeo, dark);
+    pipe.position.set(x, -0.18, -2.15);
+    body.add(pipe);
+  }
+
   body.traverse((o) => {
     if (o instanceof THREE.Mesh) {
       o.castShadow = true;
       o.receiveShadow = true;
     }
   });
+
+  // Flama del turbo: un con blau a dins i un de taronja a fora, additius.
+  const flame = new THREE.Group();
+  const outerMat = new THREE.MeshBasicMaterial({
+    color: 0xff7a1a,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const innerMat = new THREE.MeshBasicMaterial({
+    color: 0x7fd4ff,
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const outerGeo = new THREE.ConeGeometry(0.2, 1.3, 8);
+  outerGeo.rotateX(-Math.PI / 2);
+  outerGeo.translate(0, 0, -0.65);
+  const innerGeo = new THREE.ConeGeometry(0.11, 0.8, 8);
+  innerGeo.rotateX(-Math.PI / 2);
+  innerGeo.translate(0, 0, -0.4);
+  for (const x of [-0.4, 0.4]) {
+    const f = new THREE.Group();
+    f.position.set(x, -0.18, -2.3);
+    f.add(new THREE.Mesh(outerGeo, outerMat), new THREE.Mesh(innerGeo, innerMat));
+    flame.add(f);
+  }
+  flame.visible = false;
+  body.add(flame);
 
   // Rodes: un grup per roda (gir de direcció) amb el pneumàtic a dins (rotació).
   const tireGeo = new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.34, 10);
@@ -138,7 +183,7 @@ export function buildCarModel(stats: CarStats): {
     wheels.push(pivot);
   }
 
-  return { root, body, wheels };
+  return { root, body, wheels, headMat, tailMat, flame };
 }
 
 /** Converteix el model en un fantasma translúcid (sense ombres). */
@@ -158,16 +203,36 @@ function makeGhost(root: THREE.Object3D): void {
 /** Representació visual d'un vehicle, interpolada entre ticks de física. */
 export class CarView {
   readonly root: THREE.Group;
+  private readonly model: CarModel;
   private readonly wheels: THREE.Group[];
+  private readonly headlight: THREE.SpotLight | null = null;
   private wheelSpin = 0;
   private readonly tmpQuat = new THREE.Quaternion();
   private readonly prevQuat = new THREE.Quaternion();
 
-  constructor(stats: CarStats, options: { ghost?: boolean } = {}) {
-    const model = buildCarModel(stats);
-    this.root = model.root;
-    this.wheels = model.wheels;
+  constructor(stats: CarStats, options: { ghost?: boolean; headlights?: boolean } = {}) {
+    this.model = buildCarModel(stats);
+    this.root = this.model.root;
+    this.wheels = this.model.wheels;
     if (options.ghost) makeGhost(this.root);
+    if (options.headlights) {
+      const light = new THREE.SpotLight(0xfff1d0, 0, 90, 0.55, 0.45, 1.6);
+      light.position.set(0, 0.3, 2.2);
+      light.target.position.set(0, -1.5, 22);
+      light.visible = false;
+      this.model.body.add(light, light.target);
+      this.headlight = light;
+    }
+  }
+
+  /** Fars i llums de posició més intensos de nit. */
+  setNight(night: boolean): void {
+    this.model.headMat.emissiveIntensity = night ? 3 : 0.8;
+    this.model.tailMat.emissiveIntensity = night ? 2 : 0.6;
+    if (this.headlight) {
+      this.headlight.visible = night;
+      this.headlight.intensity = night ? 900 : 0;
+    }
   }
 
   dispose(): void {
@@ -199,5 +264,14 @@ export class CarView {
       const spin = pivot.children[0];
       if (spin) spin.rotation.x = this.wheelSpin;
     });
+
+    const flame = this.model.flame;
+    flame.visible = vehicle.turboActive;
+    if (flame.visible) {
+      for (const f of flame.children) {
+        const k = 0.75 + Math.random() * 0.5;
+        f.scale.set(k, k, 0.7 + Math.random() * 0.7);
+      }
+    }
   }
 }
