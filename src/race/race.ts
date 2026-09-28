@@ -11,6 +11,8 @@ import { GROUND_Y } from '../track/grid';
 
 export const COUNTDOWN_TICKS = 180;
 const MS_PER_TICK = DT * 1000;
+/** Ticks bolcat i quiet abans de reaparèixer automàticament. */
+const FLIPPED_RESPAWN_TICKS = 120;
 /** Distància fora dels límits del circuit a partir de la qual es reapareix. */
 const OUT_OF_BOUNDS_MARGIN = 150;
 /**
@@ -51,6 +53,7 @@ export class RaceTracker {
 
   private lapStart = 0;
   private respawnPoint: RespawnPoint | null = null;
+  private flippedTicks = 0;
   private readonly insideBoost = new Set<number>();
   private readonly events: RaceEvent[] = [];
   private readonly coast = { ...neutralInput(), brake: 0.4 };
@@ -97,11 +100,14 @@ export class RaceTracker {
     v.step(input, DT);
     this.raceTicks++;
     this.checkTriggers();
-    if (this.phase === 'running' && this.isOutOfBounds()) this.respawn();
+    if (this.phase === 'running' && (this.isOutOfBounds() || this.isStuckFlipped())) {
+      this.respawn();
+    }
     return this.events;
   }
 
   respawn(): void {
+    this.flippedTicks = 0;
     const p = this.respawnPoint;
     if (p) this.vehicle.place(p.pos, p.heading, 0, p.turbo);
     else this.resetVehicleToStart();
@@ -112,6 +118,15 @@ export class RaceTracker {
   private resetVehicleToStart(): void {
     const { pos, heading } = this.track.spawn;
     this.vehicle.reset(pos, heading);
+  }
+
+  /** Cert si el cotxe fa estona que està bolcat, sense rodes a terra i quiet. */
+  private isStuckFlipped(): boolean {
+    const v = this.vehicle;
+    const upY = v.upVector(this.rel).y;
+    const stuck = v.groundedWheels === 0 && v.speed < 2 && upY < 0.3;
+    this.flippedTicks = stuck ? this.flippedTicks + 1 : 0;
+    return this.flippedTicks >= FLIPPED_RESPAWN_TICKS;
   }
 
   private isOutOfBounds(): boolean {

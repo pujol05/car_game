@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { neutralInput } from '../src/core/input';
 import { DT } from '../src/core/loop';
 import { DEFAULT_CAR, carById } from '../src/data/cars';
+import { PHYSICS_VERSION } from '../src/physics/vehicle';
 import { FIRST_CIRCUIT } from '../src/data/tracks';
 import {
   GhostPlayer,
@@ -64,8 +65,12 @@ describe('GhostRecorder / GhostPlayer', () => {
 
   it('rebutja dades de fantasma corruptes', () => {
     expect(isGhostData(null)).toBe(false);
-    expect(isGhostData({ physics: 1, car: 'x', time: 1, runs: [[0, 0, 0, 0, 0]] })).toBe(false);
-    expect(isGhostData({ physics: 1, car: 'x', time: 1, runs: [[1, 999, 0, 0, 0]] })).toBe(false);
+    expect(
+      isGhostData({ physics: PHYSICS_VERSION, car: 'x', time: 1, runs: [[0, 0, 0, 0, 0]] }),
+    ).toBe(false);
+    expect(
+      isGhostData({ physics: PHYSICS_VERSION, car: 'x', time: 1, runs: [[1, 999, 0, 0, 0]] }),
+    ).toBe(false);
   });
 });
 
@@ -77,7 +82,7 @@ describe('rècords', () => {
   });
 
   it('només desa els temps que milloren el rècord', () => {
-    const ghost: GhostData = { physics: 1, car: 'balanced', time: 0, runs: [] };
+    const ghost: GhostData = { physics: PHYSICS_VERSION, car: 'balanced', time: 0, runs: [] };
     const base = { splits: [1, 2], car: 'balanced', ghost };
     expect(submitResult('k', { ...base, time: 5000 }).improved).toBe(true);
     expect(submitResult('k', { ...base, time: 6000 }).improved).toBe(false);
@@ -118,7 +123,7 @@ describe('fantasma', () => {
   it('es pot desactivar', () => {
     const track = buildTrack(FIRST_CIRCUIT);
     const ghost: GhostData = {
-      physics: 1,
+      physics: PHYSICS_VERSION,
       car: 'balanced',
       time: 1000,
       runs: [[10, 0, 127, 0, 0]],

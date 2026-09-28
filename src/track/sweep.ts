@@ -10,6 +10,11 @@ export const ROAD_HALF = 6;
 /** Amplada de les vorades pintades. */
 export const KERB = 0.8;
 export const WALL_HEIGHT = 1.2;
+/**
+ * Alçada de col·lisió de les parets. És més alta que la part visible perquè el
+ * cotxe no pugui saltar per sobre en una cresta a tota velocitat (joc arcade).
+ */
+export const WALL_COLLISION_HEIGHT = 3.2;
 export const WALL_THICKNESS = 0.6;
 /** Gruix de la llosa per sota de la calçada. */
 export const SLAB = 0.8;
@@ -61,6 +66,9 @@ interface Section {
   wallTopInR: Vec3;
   wallTopOutL: Vec3;
   wallTopOutR: Vec3;
+  /** Límit superior (invisible) de la col·lisió de les parets. */
+  guardL: Vec3;
+  guardR: Vec3;
   outL: Vec3;
   outR: Vec3;
   botL: Vec3;
@@ -83,6 +91,8 @@ function section(f: Frame): Section {
     wallTopInR: at(w, WALL_HEIGHT),
     wallTopOutL: at(-outer, WALL_HEIGHT),
     wallTopOutR: at(outer, WALL_HEIGHT),
+    guardL: at(-w, WALL_COLLISION_HEIGHT),
+    guardR: at(w, WALL_COLLISION_HEIGHT),
     outL: at(-outer, 0),
     outR: at(outer, 0),
     botL: at(-outer, -SLAB),
@@ -126,6 +136,10 @@ export function buildSweep(g: GeometryBuilder, frameAt: FrameFn, opts: SweepOpti
       g.quad(a.roadL, a.wallTopInL, b.wallTopInL, b.roadL, rightAvg, COLORS.wallInner, solid);
       g.quad(a.wallTopInL, a.wallTopOutL, b.wallTopOutL, b.wallTopInL, up, wallTop, solid);
       g.quad(a.wallTopOutL, a.botL, b.botL, b.wallTopOutL, left, COLORS.wallOuter, solid);
+      // Prolongació invisible de les cares interiors.
+      const guard = { collide: Surface.Wall, invisible: true };
+      g.quad(a.wallTopInR, a.guardR, b.guardR, b.wallTopInR, left, 0, guard);
+      g.quad(a.wallTopInL, a.guardL, b.guardL, b.wallTopInL, rightAvg, 0, guard);
     } else {
       g.quad(a.roadR, a.botR, b.botR, b.roadR, rightAvg, COLORS.wallOuter, solid);
       g.quad(a.roadL, a.botL, b.botL, b.roadL, left, COLORS.wallOuter, solid);

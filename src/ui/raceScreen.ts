@@ -60,6 +60,12 @@ export class RaceScreen implements Screen {
   private lastCountdown = 0;
   private impactCooldown = 0;
   private unsubscribe: (() => void) | null = null;
+  /** Pausa automàtica si la finestra perd el focus a mitja cursa. */
+  private readonly onBlur = (): void => {
+    if (!this.paused && !this.results.visible && this.session.race.phase !== 'finished') {
+      this.setPaused(true);
+    }
+  };
 
   constructor(
     private readonly view: SceneRenderer,
@@ -90,11 +96,13 @@ export class RaceScreen implements Screen {
     this.ui.append(this.speedLines.canvas, this.hud.root, this.pause.root, this.results.root);
     this.carSound = this.audio.createCarSound();
     this.unsubscribe = onSettingsChange(() => this.applySettings());
+    window.addEventListener('blur', this.onBlur);
     this.applySettings();
     this.restart();
   }
 
   exit(): void {
+    window.removeEventListener('blur', this.onBlur);
     this.unsubscribe?.();
     this.carSound?.dispose();
     this.carSound = null;
@@ -208,22 +216,24 @@ export class RaceScreen implements Screen {
 
   tick(): void {
     const { input } = this;
+    const pause = input.consumePause();
+    const restart = input.consumeRestart();
     if (this.results.visible) {
-      if (input.consumePressed('Enter')) this.restart();
-      else if (input.consumePressed('Escape')) this.options.onQuit();
+      if (restart) this.restart();
+      else if (pause) this.options.onQuit();
       else this.session.tick(input.readDrive(), false);
       return;
     }
     if (this.paused) {
-      if (input.consumePressed('Escape')) this.setPaused(false);
-      else if (input.consumePressed('Enter')) this.restart();
+      if (pause) this.setPaused(false);
+      else if (restart) this.restart();
       return;
     }
-    if (input.consumePressed('Escape')) {
+    if (pause) {
       this.setPaused(true);
       return;
     }
-    if (input.consumePressed('Enter')) {
+    if (restart) {
       this.restart();
       this.hud.showHint();
     }

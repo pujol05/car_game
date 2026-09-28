@@ -1,8 +1,12 @@
 {
   "name": "drift",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Joc de curses arcade 3D amb editor de circuits",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

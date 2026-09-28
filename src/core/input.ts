@@ -29,6 +29,8 @@ const PAD_LB = 4;
 const PAD_RB = 5;
 const PAD_LT = 6;
 const PAD_RT = 7;
+const PAD_BACK = 8;
+const PAD_START = 9;
 
 /** Cert si l'esdeveniment ve d'un camp de text (no s'ha de tractar com a control). */
 export function isTextField(target: EventTarget | null): boolean {
@@ -133,6 +135,20 @@ export class InputManager {
       handbrake,
       boost,
     };
+  }
+
+  /** Cert un cop quan es demana pausa o tornar enrere (Esc o botó Start). */
+  consumePause(): boolean {
+    const key = this.consumePressed('Escape');
+    const pad = this.padPressed(this.gamepad(), PAD_START);
+    return key || pad;
+  }
+
+  /** Cert un cop quan es demana reiniciar o confirmar (Enter o botó Back). */
+  consumeRestart(): boolean {
+    const key = this.consumePressed('Enter');
+    const pad = this.padPressed(this.gamepad(), PAD_BACK);
+    return key || pad;
   }
 
   /** Cert un cop quan es demana reaparèixer (R o botó Y). */

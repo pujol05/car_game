@@ -68,6 +68,9 @@ describe('circuits oficials', () => {
         if (fast.finished && fast.respawns === 0) bestBot = Math.min(bestBot, fast.time);
         bestBot = Math.min(bestBot, safe.time);
       }
+      // Si es retoca la física o els circuits, aquest valor serveix per recalibrar
+      // el temps d'autor a src/data/tracks.ts.
+      console.log(`${data.name}: millor temps del pilot automàtic ${bestBot} ms`);
       expect(bestBot).toBeLessThanOrEqual(data.medals?.author ?? 0);
     },
     120000,

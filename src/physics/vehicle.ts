@@ -52,7 +52,7 @@ export const RIDE_HEIGHT = 0.75;
  * Versió de la física. Cal incrementar-la quan canviï qualsevol cosa que
  * afecti la simulació: els fantasmes gravats amb una altra versió es descarten.
  */
-export const PHYSICS_VERSION = 1;
+export const PHYSICS_VERSION = 2;
 export const GRAVITY = 18;
 const SUBSTEPS = 4;
 const SPRING = 40;
@@ -160,6 +160,8 @@ export class Vehicle {
   readonly scrapePoint = new Vec3();
 
   private readonly prevCompression = [0, 0, 0, 0];
+  /** Cert just després de col·locar el cotxe: l'amortidor no ha de reaccionar al "teletransport". */
+  private settling = true;
   private gripBlend = 1;
 
   // Temporals reutilitzats.
@@ -201,6 +203,7 @@ export class Vehicle {
     this.groundedWheels = 0;
     this.groundNormal.set(0, 1, 0);
     this.prevCompression.fill(0);
+    this.settling = true;
     for (const w of this.wheels) {
       w.grounded = false;
       w.compression = 0;
@@ -343,7 +346,8 @@ export class Vehicle {
       const mount = this.mount.set(mx, my, mz).applyQuat(this.rot).add(this.pos);
       if (this.world.raycast(mount, down, rayLength, this.hit)) {
         const compression = clamp(rayLength - this.hit.distance, 0, SUSPENSION_TRAVEL);
-        const compressionVel = (compression - this.prevCompression[i]) / h;
+        const prev = this.settling ? compression : this.prevCompression[i];
+        const compressionVel = (compression - prev) / h;
         let f = SPRING * compression + DAMPER * compressionVel;
         if (compression > BUMP_START) f += BUMP_SPRING * (compression - BUMP_START);
         f = Math.max(0, f);
@@ -370,6 +374,7 @@ export class Vehicle {
       }
     }
     this.groundedWheels = count;
+    this.settling = false;
     if (count > 0) this.groundNormal.copy(nSum).normalize();
   }
 

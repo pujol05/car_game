@@ -111,8 +111,8 @@ export class MenuScreen implements Screen {
   }
 
   tick(): void {
-    if (this.input.consumePressed('Escape') && this.viewName !== 'main') this.setView('main');
-    if (this.input.consumePressed('Enter')) {
+    if (this.input.consumePause() && this.viewName !== 'main') this.setView('main');
+    if (this.input.consumeRestart()) {
       if (this.viewName === 'main') this.setView('select');
       else if (this.viewName === 'select') this.startRace();
     }
