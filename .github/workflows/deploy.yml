@@ -1,0 +1,59 @@
+name: Desplegar a GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Només un desplegament actiu alhora; un push nou cancel·la el que estava en curs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar el repositori
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instal·lar dependències
+        run: npm ci
+
+      - name: Comprovacions (tipus, lint i tests)
+        run: |
+          npm run lint
+          npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Preparar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Pujar el build com a artefacte
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Desplegar a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
