@@ -8,6 +8,8 @@ Trackmania) per crear-ne de nous i compartir-los amb un codi o un enllaç.
 Tot el que es veu i se sent es genera per codi: cotxes, peces del circuit, decoració,
 cel, partícules i so (Web Audio). No hi ha models ni fitxers d'àudio externs.
 
+**Juga-hi ara mateix:** <https://pujol05.github.io/car_game/>
+
 ## Requisits
 
 - [Node.js](https://nodejs.org/) 24 i npm 11
